@@ -6,7 +6,6 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(foreach)
 library(dplyr)
 ```
 
@@ -78,7 +77,7 @@ euc.dist <- function(x1, x2){
 ```
 
 ```{r}
-runs = 10
+runs = 15
 
 #the algorithm
 for(i in 1:runs){
