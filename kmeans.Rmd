@@ -1,0 +1,128 @@
+---
+title: "Coding a K-Means Algorithm"
+author: "Lathan Liou"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(foreach)
+library(dplyr)
+```
+
+# What is K-Means Clustering
+K-means clustering is an unsupervised machine learning algorithm that defines "clusters" in a set of data points by minimizing Euclidean distance between a data point and a centroid. A centroid can be loosely defined as a center of mass in a set of points. Each cluster will contain points that are within a similar distance away from a local centroid for that cluster. While there are different algorithmic approaches, the basic idea is the following:
+
+\begin{enumerate}
+
+\list Initialize clusters by choosing _k_ and centroids. 
+
+\list Calculate a distance matrix.
+
+\list Assign clusters by minimum distance.
+
+\list Compute error.
+
+\list Update centroids.
+
+\list Optional: Optimize k by making an elbow plot.
+
+\end{enumerate}
+
+# Randomly generating data points
+The first thing to do is to get some data. This data will be slightly contrived, so although it may not highlight the true power of k-means clustering to partition through "messy data", for the purposes of demonstrating how the algorithm works, this is what I'll do.
+
+```{r}
+#create data from 3 distinct pools
+set.seed(47)
+x1 <- runif(50, 1, 50)
+y1 <- runif(50, 1, 50)
+x2 <- runif(50, 40, 70)
+y2 <- runif(50, 40, 70)
+x3 <- runif(50, 60, 90)
+y3 <- runif(50, 60, 90)
+
+#combine
+x <- c(x1, x2, x3)
+y <- c(y1, y2, y3)
+
+#create df
+df <- cbind(x,y)
+df <- as.data.frame(df)
+
+#plot
+plot(df$x, df$y)
+```
+
+Great, so now we have our data. Let's begin coding the k-means algorithm.
+
+```{r}
+#choose k
+k <- 3
+
+#choose centroid
+set.seed(47)
+cent.x <- runif(3, 1, 100)
+cent.y <- runif(3, 1, 100)
+centroids <- as.data.frame(cbind(cent.x, cent.y))
+centroids
+
+#define variables
+n <- nrow(df)
+
+#define euclidean distance function
+euc.dist <- function(x1, x2){
+  distance <- sqrt(sum((x1 - x2)^2))
+  return(distance)
+}
+```
+
+```{r}
+runs = 10
+
+#the algorithm
+for(i in 1:runs){
+   #calculate distance
+    k1 <- NULL
+    for(i in 1:n){
+      k1[i] <- euc.dist(df[i,],centroids[1,])
+      }
+    
+    k2 <- NULL
+    for(i in 1:n){
+      k2[i] <- euc.dist(df[i,], centroids[2,])
+      }
+    
+    k3 <- NULL
+    for(i in 1:n){
+      k3[i] <- euc.dist(df[i,], centroids[3,])
+      }
+    
+    dm <- NULL
+    dm <- as.data.frame(cbind(k1, k2, k3))
+    
+    #find clusters
+    clust <- NULL
+    clust <- apply(dm, 1, which.min)
+    
+    #bind cluster assignment to original dataframe
+    df_new <- cbind(df, clust)
+    
+    #recalculate new centroids
+    for(i in 1:k){
+      test <- df %>%
+        filter(clust == i) %>%
+        colMeans()
+      test <- t(as.matrix(test))[,-3]
+      centroids[i,] <- test
+    }
+}
+```
+
+```{r}
+plot(df$x, df$y, col = clust)
+```
+
+```{r}
+#wrapping everything up in a function
+```
