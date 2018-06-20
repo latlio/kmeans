@@ -67,7 +67,7 @@ euc.dist <- function(x1, x2){
 }
 
 #wrap everything in a function
-kmeans <- function(k,runs){
+kmeans <- function(df,k,runs){
   
   n <- nrow(df)
   
