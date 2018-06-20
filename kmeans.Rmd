@@ -7,6 +7,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
+library(ggplot2)
 ```
 
 # What is K-Means Clustering
@@ -50,55 +51,43 @@ df <- cbind(x,y)
 df <- as.data.frame(df)
 
 #plot
-plot(df$x, df$y)
+ggplot(data = df, aes(x, y)) + 
+  geom_point() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
 ```
 
 Great, so now we have our data. Let's begin coding the k-means algorithm.
 
 ```{r}
-#choose k
-k <- 3
-
-#choose centroid
-set.seed(47)
-cent.x <- runif(3, 1, 100)
-cent.y <- runif(3, 1, 100)
-centroids <- as.data.frame(cbind(cent.x, cent.y))
-centroids
-
-#define variables
-n <- nrow(df)
-
 #define euclidean distance function
 euc.dist <- function(x1, x2){
   distance <- sqrt(sum((x1 - x2)^2))
   return(distance)
 }
-```
 
-```{r}
-runs = 15
+#wrap everything in a function
+kmeans <- function(k,runs){
+  
+  n <- nrow(df)
+  
+  #choose centroid
+  set.seed(47)
+  cent.x <- runif(k, 1, 100)
+  cent.y <- runif(k, 1, 100)
+  centroids <- as.data.frame(cbind(cent.x, cent.y))
 
 #the algorithm
 for(i in 1:runs){
    #calculate distance
-    k1 <- NULL
-    for(i in 1:n){
-      k1[i] <- euc.dist(df[i,],centroids[1,])
-      }
+    dm <- matrix(NA, n, nrow(centroids))
     
-    k2 <- NULL
-    for(i in 1:n){
-      k2[i] <- euc.dist(df[i,], centroids[2,])
+    for(j in 1:nrow(centroids)){
+      for(i in 1:n){
+        dm[i,j] <- euc.dist(df[i,], centroids[j,])
       }
-    
-    k3 <- NULL
-    for(i in 1:n){
-      k3[i] <- euc.dist(df[i,], centroids[3,])
-      }
-    
-    dm <- NULL
-    dm <- as.data.frame(cbind(k1, k2, k3))
+    }
+    dm <- as.data.frame(dm)
     
     #find clusters
     clust <- NULL
@@ -109,19 +98,17 @@ for(i in 1:runs){
     
     #recalculate new centroids
     for(i in 1:k){
-      test <- df %>%
+      test <- df_new %>%
         filter(clust == i) %>%
         colMeans()
       test <- t(as.matrix(test))[,-3]
       centroids[i,] <- test
     }
 }
-```
-
-```{r}
-plot(df$x, df$y, col = clust)
-```
-
-```{r}
-#wrapping everything up in a function
+  #plot
+    print(ggplot(data = df_new, aes(x,y)) + 
+      geom_point(col = clust) + 
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black")))
+}
 ```
